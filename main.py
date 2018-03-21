@@ -31,7 +31,7 @@ add_form = """
     </form>
 """
 
-# TODO:
+# TODO 1:
 # Create the HTML for the form below so the user can check off a movie from their list 
 # when they've watched it.
 # Name the action for the form '/crossoff' and make its method 'post'.
@@ -41,7 +41,7 @@ crossoff_form = """
 
 """
 
-# TODO:
+# TODO 2:
 # Finish filling in the function below so that the user will see a message like:
 # "Star Wars has been crossed off your watchlist".
 # And create a route above the function definition to receive and handle the request from 
@@ -49,7 +49,7 @@ crossoff_form = """
 def crossoff_movie():
     crossed_off_movie = request.form['crossed-off-movie']    
 
-# TODO:
+# TODO 3:
 # modify the crossoff_form above to use a dropdown (<select>) instead of
 # an input text field (<input type="text"/>)
 
