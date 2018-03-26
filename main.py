@@ -1,31 +1,41 @@
-from flask import Flask
-import random
-
+from flask import Flask, request
 app = Flask(__name__)
 
-app.config['DEBUG'] = True      # displays runtime errors in the browser, too
+app.config['DEBUG'] = True
 
-@app.route("/")
+page_header = """
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Flicklist</title>
+    </head>
+    <body>
+        <h1>Flicklist</h1>
+"""
+
+page_footer = """
+    </body>
+</html>
+"""
+
+@app.route('/')
 def index():
-    # choose a movie by invoking our new function
-    todays_movie = get_random_movie()
-    tomorrows_movie = get_random_movie()
+    edit_head = "<h3>Edit my Watchlist</h3>"
+    add_form = """
+    <form action = "/add" method = "post">
+        I want to add 
+        <input type="text" name="new-movie" />
+        to my watchlist.
+        <input type="submit" value = "Add It"/>
+    </form>
 
-    # build the response string
-    content = "<h1>Movie of the Day</h1>"
-    content += "<ul>"
-    content += "<li>" + todays_movie + "</li>"
-    content += "</ul>"
+    """
+    return page_header + edit_head + add_form + page_footer
 
-    content += "<h1>Tomorrow's Movie of the Day</h1>"
-    content += "<ul>"
-    content += "<li>" + tomorrows_movie + "</li>"
-    content += "</ul>"
-
-    return content
-
-def get_random_movie():
-    return random.choice(["The Big Lebowski", "The Royal Tenenbaums", "Princess Mononoke", "The Princess Bride", "Star Trek IV: The Voyage Home"])
-
+@app.route("/add", methods = ["POST"])
+def add():
+    new_movie = request.form['new-movie']
+    content = "<p><strong>{new_movie}</strong> has been added to your watchlist.</p>"
+    return page_header + content.format(new_movie = new_movie) + page_footer
 
 app.run()
