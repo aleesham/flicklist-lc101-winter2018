@@ -22,6 +22,8 @@ class Movie(db.Model):
     def __repr__(self):
         return '<Movie %r>' % self.name
 
+### TODO 0: Create a User Class
+
 # a list of movie names that nobody should have to watch
 terrible_movies = [
     "Gigli",
@@ -36,6 +38,17 @@ def get_current_watchlist():
 
 def get_watched_movies():
     return Movie.query.filter_by(watched=True).all()
+
+### TODO 5: add beforerequest route
+
+### TODO 2: Add Register and Logout Routes
+
+### TODO 3: Add a register.html template
+
+## TODO 4: Edit base template to display user email OR login/register links
+
+## TODO 6: Make errors into flash messages. 
+
 
 # Create a new route called rate_movie which handles a POST request on /rating-confirmation
 @app.route("/rating-confirmation", methods=['POST'])
