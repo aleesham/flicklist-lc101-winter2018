@@ -4,7 +4,7 @@ import cgi
 
 app = Flask(__name__)
 app.config['DEBUG'] = True      # displays runtime errors in the browser, too
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://flicklist:MyNewPass@localhost:8889/flicklist'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://flicklist:flicklist@localhost:8889/flicklist'
 app.config['SQLALCHEMY_ECHO'] = True
 
 db = SQLAlchemy(app)
@@ -13,6 +13,7 @@ class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
     watched = db.Column(db.Boolean)
+    rating = db.Column(db.String(5))
     
     # TODO: add a ratings column to the Movie table
 
@@ -38,7 +39,7 @@ def get_current_watchlist():
 def get_watched_movies():
     # For now, we are just pretending
     # returns the list of movies the user has already watched and crossed off
-    return [ "The Matrix", "The Princess Bride", "Buffy the Vampire Slayer" ]
+    return Movie.query.filter_by(watched = True).all()
 
 # Create a new route called rate_movie which handles a POST request on /rating-confirmation
 @app.route("/rating-confirmation", methods=['POST'])
@@ -50,7 +51,7 @@ def rate_movie():
     if movie not in get_watched_movies():
         # the user tried to rate a movie that isn't in their list,
         # so we redirect back to the front page and tell them what went wrong
-        error = "'{0}' is not in your Watched Movies list, so you can't rate it!".format(movie)
+        error = "'{0}' is not in your Watched Movies list, so you can't rate it!".format(movie.name)
 
         # redirect to homepage, and include error as a query parameter in the URL
         return redirect("/?error=" + error)
@@ -58,9 +59,12 @@ def rate_movie():
     # if we didn't redirect by now, then all is well
     
     # TODO: make a persistent change to the model so that you STORE the rating in the database
+    movie.rating = rating
+    db.session.add(movie)
+    db.session.commit()
     # (Note: the next TODO is in templates/ratings.html)
     
-    return render_template('rating-confirmation.html', movie=movie, rating=rating)
+    return render_template('rating-confirmation.html', movie=movie)
 
 
 # Creates a new route called movie_ratings which handles a GET on /ratings
