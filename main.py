@@ -1,10 +1,10 @@
-from flask import Flask, request, redirect, render_template
+from flask import Flask, request, redirect, render_template, session, flash
 from flask_sqlalchemy import SQLAlchemy
 import cgi
 
 app = Flask(__name__)
 app.config['DEBUG'] = True      # displays runtime errors in the browser, too
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://flicklist:MyNewPass@localhost:8889/flicklist'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://flicklist:flicklist@localhost:8889/flicklist'
 app.config['SQLALCHEMY_ECHO'] = True
 
 db = SQLAlchemy(app)
@@ -23,6 +23,17 @@ class Movie(db.Model):
         return '<Movie %r>' % self.name
 
 ### TODO 0: Create a User Class
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key = True)
+    email = db.Column(db.String(120), unique = True)
+    password = db.Column(db.String(120))
+
+    def __init__(self, email, password):
+        self.email = email
+        self.password = password
+
+    def __repr__(self):
+        return '<User %r>' % self.email
 
 # a list of movie names that nobody should have to watch
 terrible_movies = [
@@ -40,8 +51,42 @@ def get_watched_movies():
     return Movie.query.filter_by(watched=True).all()
 
 ### TODO 5: add beforerequest route
+@app.before_request
+def require_login():
+    if 'user' not in session and request.endpoint != "register" :
+        return redirect('/register')
 
 ### TODO 2: Add Register and Logout Routes
+@app.route("/register", methods = ["GET", "POST"])
+def register():
+    if request.method == "POST":
+        #Check out the info, verify it, and redirect
+        #either to errors or to the index page
+        email = request.form["email"]
+        password = request.form["password"]
+        verify = request.form["verify-password"]
+
+        flash("Register successful. Logged in.")
+        #Add verification to actually register
+        # check if the email is in the database
+        # check if passwords match
+        # check if email is actually and email.
+
+        user = User(email, password)
+        db.session.add(user)
+        db.session.commit()
+
+        session['user'] = email
+
+        return redirect("/")
+    
+    return render_template("register.html")
+
+@app.route("/logout", methods = ["POST"])
+def logout():
+    del session['user']
+    return redirect("/")
+
 
 ### TODO 3: Add a register.html template
 
@@ -117,5 +162,7 @@ def index():
     encoded_error = request.args.get("error")
     return render_template('edit.html', watchlist=get_current_watchlist(), error=encoded_error and cgi.escape(encoded_error, quote=True))
 
+
+app.secret_key = "blahblahblahblahblah"
 if __name__ == "__main__":
     app.run()

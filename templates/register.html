@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h3>Register for Flicklist</h3>
+
+<form method="post">
+    <label>Email:<input type="text" name="email" /></label><br />
+    <label>Password:<input type="password" name="password" /></label><br />
+    <label>Verify Password:<input type="password" name="verify-password" /></label>
+    <input type="submit" value="Register" />
+</form>
+
+{% endblock %}
