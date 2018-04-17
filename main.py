@@ -4,7 +4,7 @@ import cgi
 
 app = Flask(__name__)
 app.config['DEBUG'] = True      # displays runtime errors in the browser, too
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://flicklist:MyNewPass@localhost:8889/flicklist'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://flicklist:flicklist@localhost:8889/flicklist'
 app.config['SQLALCHEMY_ECHO'] = True
 
 db = SQLAlchemy(app)
@@ -50,6 +50,26 @@ def get_watched_movies():
     return Movie.query.filter_by(watched=True).all()
 
 # TODO 3: Add "/login" GET and POST routes.
+@app.route("/login", methods = ["GET", "POST"])
+def login():
+    if request.method == "POST":
+        email = request.form['email']
+        password = request.form['password']
+        users = User.query.filter_by(email = email).all()
+        if len(users) == 1:             ###if user != None:
+            if (users[0].password == password):
+                session['user'] = users[0].email
+                return redirect('/')
+
+        """
+        if len(users) == 1 and (users[0].password == password):
+            session['user'] = users[0].email
+            return redirect('/')
+        """
+        
+        flash("User/password combination does not exist")
+        return render_template('login.html')
+    return render_template('login.html')
 # TODO 4: Create login template with username and password.
 #         Notice that we've already created a 'login' link in the upper-right corner of the page that'll connect to it.
 
@@ -58,12 +78,21 @@ def register():
     if request.method == 'POST':
         email = request.form['email']
         password = request.form['password']
+        verify = request.form['verify']
         if not is_email(email):
             flash('zoiks! "' + email + '" does not seem like an email address')
             return redirect('/register')
         # TODO 1: validate that form value of 'verify' matches password
+        if verify != password:
+            flash("Passwords don't match")
+            return redirect('/register')
+        
         # TODO 2: validate that there is no user with that email already
         user = User(email=email, password=password)
+        if User.query.filter_by(email = email).first() == user:
+            flash('Account with this email already exists.')
+            return redirect('/register')
+
         db.session.add(user)
         db.session.commit()
         session['user'] = user.email
@@ -160,7 +189,8 @@ def index():
 #         It should contain 'register' and 'login'.
 @app.before_request
 def require_login():
-    if not ('user' in session or request.endpoint == 'register'):
+    allowed_routes = ['register', 'login']
+    if not ('user' in session or request.endpoint in allowed_routes):
         return redirect("/register")
 
 # In a real application, this should be kept secret (i.e. not on github)
